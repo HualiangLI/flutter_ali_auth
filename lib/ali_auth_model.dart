@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'ali_auth_enum.dart';
 
 /// 登录窗口配置
@@ -866,14 +867,14 @@ class AliAuthModel {
 }
 
 Map<String, dynamic> _$AliAuthModelToJson(AliAuthModel instance) {
-  var privacyAlertCornerRadiusArray = instance.privacyAlertCornerRadiusArray ?? [10, 10, 10, 10]
+  var privacyAlertCornerRadiusArray = instance.privacyAlertCornerRadiusArray ?? [10, 10, 10, 10];
   if (Platform.isIOS) {
     privacyAlertCornerRadiusArray = [
       privacyAlertCornerRadiusArray[0], // 左上
       privacyAlertCornerRadiusArray[3], // 左下
       privacyAlertCornerRadiusArray[2], // 右下
       privacyAlertCornerRadiusArray[1], // 右上
-    ]
+    ];
   }
 
   return <String, dynamic>{
