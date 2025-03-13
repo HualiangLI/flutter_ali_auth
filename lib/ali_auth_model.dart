@@ -867,7 +867,7 @@ class AliAuthModel {
 }
 
 Map<String, dynamic> _$AliAuthModelToJson(AliAuthModel instance) {
-  var privacyAlertCornerRadiusArray = instance.privacyAlertCornerRadiusArray ?? [10, 10, 10, 10]
+  var privacyAlertCornerRadiusArray = instance.privacyAlertCornerRadiusArray ?? [10, 10, 10, 10];
   if (Platform.isIOS) {
     privacyAlertCornerRadiusArray = [
       privacyAlertCornerRadiusArray[0], // 左上
