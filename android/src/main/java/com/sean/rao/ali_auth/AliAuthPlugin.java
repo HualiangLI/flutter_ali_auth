@@ -161,7 +161,7 @@ public class AliAuthPlugin extends FlutterActivity implements FlutterPlugin, Act
         } else {
           boolean isDelay = jsonObject.getBoolean("isDelay");
           /// 判断是否初始化过或者是否是同步登录，如果是将进行再次初始化
-          if (mActivity != null && (oneKeyLoginPublic == null || !isDelay)) {
+          if (oneKeyLoginPublic == null || !isDelay) {
             oneKeyLoginPublic = new OneKeyLoginPublic(mActivity, _events, call.arguments);
           }
         }
