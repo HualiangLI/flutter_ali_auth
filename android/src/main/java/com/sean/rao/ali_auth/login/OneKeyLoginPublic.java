@@ -2,6 +2,7 @@ package com.sean.rao.ali_auth.login;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
@@ -320,6 +321,8 @@ public class OneKeyLoginPublic extends LoginParams {
         if(UtilTool.dataStatus(jsonObject, "protocolColor") && UtilTool.dataStatus(jsonObject, "protocolCustomColor")){
             config.setAppPrivacyColor(jsonObject.getIntValue("protocolColor"), jsonObject.getIntValue("protocolCustomColor"));
         }
+//        // 定制：掩码字体
+//        config.setNumberTypeface(Typeface.createFromAsset(mActivity.getAssets(), UtilTool.flutterToPath("assets/fonts/AlibabaPuHuiTi-3-75-SemiBold.ttf")));
         return config;
     }
 }

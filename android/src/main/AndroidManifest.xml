@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.sean.rao.ali_auth">
+    >
 
     <!--允许访问网络状态的权限-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

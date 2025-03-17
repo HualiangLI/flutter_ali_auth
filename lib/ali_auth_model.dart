@@ -560,8 +560,11 @@ class AliAuthModel {
   /// 设置服务协议左右两侧间距。
   late int? privacyAlertContentHorizontalMargin;
 
-  /// 设置服务协议上下间距。
+  /// 设置服务协议上下两侧间距。
   late int? privacyAlertContentVerticalMargin;
+
+  /// 设置服务协议上下间距 (privacyAlertLineSpaceDp)。
+  late int? privacyAlertContentLineSpace;
 
   /// 设置按钮背景图片路径。
   late String? privacyAlertBtnBackgroundImgPath;
@@ -823,6 +826,7 @@ class AliAuthModel {
     this.privacyAlertProtocolNameUseUnderLine = false,
     this.privacyAlertContentHorizontalMargin,
     this.privacyAlertContentVerticalMargin,
+    this.privacyAlertContentLineSpace,
     this.privacyAlertBtnBackgroundImgPath,
     this.privacyAlertBefore,
     this.privacyAlertEnd,
@@ -867,7 +871,8 @@ class AliAuthModel {
 }
 
 Map<String, dynamic> _$AliAuthModelToJson(AliAuthModel instance) {
-  var privacyAlertCornerRadiusArray = instance.privacyAlertCornerRadiusArray ?? [10, 10, 10, 10];
+  var privacyAlertCornerRadiusArray =
+      instance.privacyAlertCornerRadiusArray ?? [10, 10, 10, 10];
   if (Platform.isIOS) {
     privacyAlertCornerRadiusArray = [
       privacyAlertCornerRadiusArray[0], // 左上
@@ -1050,7 +1055,8 @@ Map<String, dynamic> _$AliAuthModelToJson(AliAuthModel instance) {
     'privacyAlertContentHorizontalMargin':
         instance.privacyAlertContentHorizontalMargin,
     'privacyAlertContentVerticalMargin':
-        instance.privacyAlertContentVerticalMargin ?? 10,
+        instance.privacyAlertContentVerticalMargin,
+    'privacyAlertContentLineSpace': instance.privacyAlertContentLineSpace ?? 10,
     'privacyAlertBtnBackgroundImgPath':
         instance.privacyAlertBtnBackgroundImgPath ?? "",
     'privacyAlertBefore': instance.privacyAlertBefore ?? "",

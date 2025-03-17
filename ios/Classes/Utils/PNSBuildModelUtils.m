@@ -167,7 +167,7 @@
         initWithString: [viewConfig stringValueForKey: @"logBtnText" defaultValue: @"一键登录欢迎语"]
             attributes: @{
               NSForegroundColorAttributeName: [self getColor: [viewConfig stringValueForKey: @"logBtnTextColor" defaultValue: @"#ff00ff"]],
-              NSFontAttributeName: [UIFont systemFontOfSize: [viewConfig floatValueForKey: @"logBtnTextSize" defaultValue: 23]]
+              NSFontAttributeName: [UIFont boldSystemFontOfSize: [viewConfig floatValueForKey: @"logBtnTextSize" defaultValue: 23]]
             }
   ];
   /// 登录按钮背景设置
@@ -272,7 +272,7 @@
     if ([viewConfig floatValueForKey: @"privacyOffsetY" defaultValue: -1] > -1) {
       frame.origin.y = [viewConfig floatValueForKey: @"privacyOffsetY" defaultValue: -1];
     }
-    if ([viewConfig floatValueForKey: @"privacyOffsetY" defaultValue: -1] > -1) {
+    if ([viewConfig floatValueForKey: @"privacyOffsetX" defaultValue: -1] > -1) {
       frame.origin.x = [viewConfig floatValueForKey: @"privacyOffsetX" defaultValue: -1];
     }
     return frame;
@@ -1926,6 +1926,13 @@
   };
 
   #pragma mark 9、协议栏
+  /// checkbox
+  /// 扩大选区
+  model.expandAuthPageCheckedScope = YES;
+  model.checkBoxIsHidden = [dict boolValueForKey:@"checkboxHidden" defaultValue:false];
+  float const checkboxWH = [dict floatValueForKey:@"checkboxWidth" defaultValue:12] + 2;
+  model.checkBoxWH = checkboxWH;
+  model.checkBoxImageEdgeInsets = UIEdgeInsetsMake(2, 1, 0, 1);
   if (!model.checkBoxIsHidden) {
     UIImage* unchecked = [self changeUriPathToImage: [dict stringValueForKey: @"uncheckedImgPath" defaultValue: nil]];
     UIImage* checked = [self changeUriPathToImage: [dict stringValueForKey: @"checkedImgPath" defaultValue: nil]];
@@ -1936,6 +1943,8 @@
       ];
     }
   }
+  /// 运营商协议放在最后
+  model.privacyOperatorIndex = 3;
   /// 协议1，[协议名称,协议Url]
   model.privacyOne = @[
     [dict stringValueForKey: @"protocolOneName" defaultValue: @""],
@@ -1951,17 +1960,22 @@
     [dict stringValueForKey: @"protocolThreeName" defaultValue: @""],
     [dict stringValueForKey: @"protocolThreeURL" defaultValue: @""]
   ];
-  /// 扩大选区
-  model.expandAuthPageCheckedScope = YES;
+  
   model.privacyFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
     if ([dict floatValueForKey: @"privacyOffsetY" defaultValue: -1] > -1) {
       frame.origin.y = [dict floatValueForKey: @"privacyOffsetY" defaultValue: -1];
     }
-    if ([dict floatValueForKey: @"privacyOffsetY" defaultValue: -1] > -1) {
+    if ([dict floatValueForKey: @"privacyOffsetX" defaultValue: -1] > -1) {
       frame.origin.x = [dict floatValueForKey: @"privacyOffsetX" defaultValue: -1];
+    }
+    const float marginH = [dict floatValueForKey:@"privacyMargin" defaultValue:0];
+    if (marginH > 0) {
+      frame.origin.x = marginH;
+      frame.size.width = screenSize.width - 2 * marginH;
     }
     return frame;
   };
+  
   #pragma mark 10、弹窗样式
   if (PNSBuildModelStyleAlertPortrait == style || PNSBuildModelStyleAlertLandscape == style || PNSBuildModelStyleSheetPortrait == style) {
     model.alertCloseImage = model.alertCloseImage?:[UIImage imageNamed:@"icon_close_light"];
@@ -2020,14 +2034,41 @@
         [dict floatValueForKey: @"privacyAlertHeight" defaultValue: 200]
     );
   };
-  
-  #pragma mark 屏幕方向
   if (model.privacyAlertIsNeedShow) {
+    float closeBtnOffsetY = 6;
+    float closeBtnWidth = [dict floatValueForKey:@"privacyAlertCloseImgWidth" defaultValue: 40];
+    float closeBtnHeight = [dict floatValueForKey:@"privacyAlertCloseImgHeight" defaultValue: 40];
+    const float titleBlockHeight = closeBtnOffsetY * 2 + closeBtnHeight;
+    // 标题行
     model.privacyAlertTitleFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
-        return CGRectMake(0, 20, frame.size.width, frame.size.height);
+        return CGRectMake(0, closeBtnOffsetY, frame.size.width, closeBtnHeight);
     };
+    model.privacyAlertTitleFont = [UIFont boldSystemFontOfSize: [dict intValueForKey:@"privacyAlertTitleTextSize" defaultValue:16]];
+    // 关闭按钮
+    model.privacyAlertCloseFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
+      return CGRectMake(10, closeBtnOffsetY, closeBtnWidth, closeBtnHeight);
+    };
+    // 内容
+    const float contentVMargin = [dict floatValueForKey:@"privacyAlertContentVerticalMargin" defaultValue: 10];
+     const float contentHMargin = [dict floatValueForKey:@"privacyAlertContentHorizontalMargin" defaultValue:0];
     model.privacyAlertPrivacyContentFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
-        return CGRectMake(0, frame.origin.y+10, frame.size.width, frame.size.height);
+      return CGRectMake(contentHMargin, titleBlockHeight + contentVMargin, superViewSize.width - 2 * contentHMargin, superViewSize.height - titleBlockHeight - 2 * contentVMargin);
+    };
+    // 确认按钮
+    model.privacyAlertButtonFont = [UIFont systemFontOfSize: [dict floatValueForKey:@"privacyAlertBtnTextSize" defaultValue: 18]];
+    model.privacyAlertButtonFrameBlock = ^CGRect(CGSize screenSize, CGSize superViewSize, CGRect frame) {
+        const float btnWidth = [dict floatValueForKey:@"privacyAlertBtnWidth" defaultValue: 40];
+        return CGRectMake(frame.origin.x + (frame.size.width - btnWidth) / 2, frame.origin.y + contentVMargin, btnWidth, [dict floatValueForKey:@"privacyAlertBtnHeigth" defaultValue: 20]);
+    };
+    // 标题 border
+    UIView *lineView = [[UIView alloc] init];
+    lineView.backgroundColor = [self getColor:@"#E6E6E6"];
+    model.privacyAlertCustomViewBlock = ^(UIView * _Nonnull superCustomView) {
+      [superCustomView addSubview: lineView];
+    };
+    model.privacyAlertCustomViewLayoutBlock = ^(CGRect privacyAlertFrame, CGRect privacyAlertTitleFrame, CGRect privacyAlertPrivacyContentFrame, CGRect privacyAlertButtonFrame, CGRect privacyAlertCloseFrame) {
+      const float y = privacyAlertCloseFrame.origin.y + privacyAlertCloseFrame.size.height + privacyAlertCloseFrame.origin.y;
+      lineView.frame = CGRectMake(0, y, privacyAlertFrame.size.width, 1);
     };
   }
   

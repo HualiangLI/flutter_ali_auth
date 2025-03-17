@@ -32,6 +32,7 @@ bool bool_false = false;
   TXCustomModel * _model;
   Boolean _isChecked;
   Boolean _isHideToast;
+  UIView * _loading;
 }
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   AliAuthPlugin* instance = [[AliAuthPlugin alloc] init];
@@ -140,6 +141,9 @@ bool bool_false = false;
     // 2. 跳转
     flutterViewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [[self findCurrentViewController] presentViewController:flutterViewController animated: YES completion:nil];
+  } else if ([@"hideLoaidng" isEqualToString:call.method]) {
+    [self hideCustomLoading];
+    return;
   }
   else {
     result(FlutterMethodNotImplemented);
@@ -331,8 +335,9 @@ bool bool_false = false;
           
             //3. 调用获取登录Token接口，可以立马弹起授权页
             // 关闭loading
-            [MBProgressHUD hideHUDForView:_vc.view animated:YES];
+//            [MBProgressHUD hideHUDForView:_vc.view animated:YES];
             [[TXCommonHandler sharedInstance] getLoginTokenWithTimeout:timeout controller:_vc model:model complete:^(NSDictionary * _Nonnull resultDic) {
+              NSLog(@"<<<<<< getLoginTokenWithTimeout returned::: %@", resultDic);
               NSString *code = [resultDic objectForKey:@"resultCode"];
 //              UITapGestureRecognizer * tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickAllScreen:)];
 //
@@ -341,17 +346,22 @@ bool bool_false = false;
               [[weakSelf findCurrentViewController].view hitTest:CGPointMake(_vc.view.bounds.size.width, _vc.view.bounds.size.height) withEvent:nil];
 //              [[weakSelf findCurrentViewController].view addSubview:headerView];
               
+              // 是否隐藏自定义 loading
               bool isHiddenLoading = [self->_callData.arguments boolValueForKey: @"isHiddenLoading" defaultValue: YES];
-              // 当未勾选隐私协议时，弹出 Toast 提示
-              if ([PNSCodeLoginControllerClickLoginBtn isEqualToString:code] &&
-                    !self->_isChecked) {
+              
+              if ([PNSCodeLoginControllerClickLoginBtn isEqualToString:code]) { // 点击登录按钮
+                if (self->_isChecked) {
+                  if (!isHiddenLoading) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                      [self showCustomLoading:[weakSelf findCurrentViewController].view];
+                    });
+                  }
+                } else {
+                  if (!self->_isHideToast) {
                     NSDictionary *dic = self->_callData.arguments;
                     [self showToast:[dic stringValueForKey:@"toastText" defaultValue:@"请先阅读用户协议"]];
-                    // 当存在isHiddenLoading时需要执行loading
-              } else if ([PNSCodeLoginControllerClickLoginBtn isEqualToString:code] && !isHiddenLoading) {
-                  dispatch_async(dispatch_get_main_queue(), ^{
-                    [MBProgressHUD showHUDAddedTo:[weakSelf findCurrentViewController].view animated:YES];
-                });
+                  }
+                }
               } else if ([PNSCodeSuccess isEqualToString:code]) {
                 bool autoQuitPage = [self->_callData.arguments boolValueForKey: @"autoQuitPage" defaultValue: YES];
                 // 登录成功后是否自动关闭页面
@@ -375,6 +385,12 @@ bool bool_false = false;
                 [[TXCommonHandler sharedInstance] cancelLoginVCAnimated:YES complete:nil];
               } else if ([PNSCodeCarrierChanged isEqualToString:code]) { // 切换运营商
                 [[TXCommonHandler sharedInstance] cancelLoginVCAnimated:YES complete:nil];
+              } else if ([PNSCodeLoginPrivacyAlertViewClickContinue isEqualToString:code]) { // 点击二次弹窗的同意并继续按钮
+                self->_isChecked = YES;
+              }
+              
+              if ((self->_isChecked && [PNSCodeLoginControllerClickLoginBtn isEqualToString:code]) || [PNSCodeLoginPrivacyAlertViewClickContinue isEqualToString:code]) {
+                // show loading;
               }
               [weakSelf showResult:resultDic];
             }];
@@ -425,13 +441,6 @@ bool bool_false = false;
 
 #pragma mark -  格式化数据utils返回数据
 - (void)showResult:(id __nullable)showResult {
-  // 当存在isHiddenLoading时需要执行关闭
-  if (![self->_callData.arguments boolValueForKey: @"isHiddenLoading" defaultValue: YES]) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [MBProgressHUD hideHUDForView: [self findCurrentViewController].view animated:YES];
-    });
-  }
-  
   NSDictionary *dict = @{
       @"code": [NSString stringWithFormat: @"%@", [showResult objectForKey:@"resultCode"]],
       @"msg" : [AliAuthEnum initData][[showResult objectForKey:@"resultCode"]]?:@"",
@@ -676,6 +685,82 @@ bool bool_false = false;
 
 - (void) clickAllScreen:(UITapGestureRecognizer *) recognizer {
   NSLog(@"点击事件屏蔽");
+}
+
+- (void) showCustomLoading:(UIView *)view {
+  // 1. 创建全屏透明蒙层
+  UIView *overlayView = [[UIView alloc] initWithFrame: view.bounds];
+  overlayView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.1]; // 半透明黑色背景
+  overlayView.userInteractionEnabled = TRUE; // 不可点击穿透
+  [view addSubview:overlayView];
+
+  // 2. 创建中间圆角框
+  UIView *roundedView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 88, 88)];
+  roundedView.center = overlayView.center;
+  roundedView.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.6]; // #000000 60% 透明度
+  roundedView.layer.cornerRadius = 8.0; // 圆角半径 8
+  roundedView.layer.masksToBounds = YES;
+  [overlayView addSubview:roundedView];
+
+  // 3. 创建环
+  CAShapeLayer *circleLayer = [CAShapeLayer layer];
+  CGFloat radius = 18; // 半径
+  CGFloat lineWidth = 2.0; // 环的宽度
+  CGRect circleRect = CGRectMake((roundedView.bounds.size.width - radius * 2) / 2,
+                                 12,
+                                 radius * 2, radius * 2);
+
+  // 创建环路径
+  UIBezierPath *circlePath = [UIBezierPath bezierPathWithOvalInRect:circleRect];
+  circleLayer.path = circlePath.CGPath;
+  circleLayer.strokeColor = [UIColor colorWithWhite:1.0 alpha:0.2].CGColor; // 半透明白色
+  circleLayer.fillColor = [UIColor clearColor].CGColor; // 透明填充
+  circleLayer.lineWidth = lineWidth;
+  [roundedView.layer addSublayer:circleLayer];
+
+  // 4. 创建 1/4 圆弧
+  CAShapeLayer *arcLayer = [CAShapeLayer layer];
+  UIBezierPath *arcPath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(radius, radius)
+                                                        radius:radius
+                                                    startAngle:-M_PI_2
+                                                      endAngle:0
+                                                     clockwise:YES];
+  arcLayer.path = arcPath.CGPath;
+  arcLayer.strokeColor = [UIColor colorWithWhite:1.0 alpha:1.0].CGColor; // 白色
+  arcLayer.fillColor = [UIColor clearColor].CGColor; // 透明填充
+  arcLayer.lineWidth = lineWidth;
+  arcLayer.lineCap = kCALineCapRound; // 两端圆角
+  arcLayer.frame = circleRect;
+  [roundedView.layer addSublayer:arcLayer];
+
+  // 5. 添加旋转动画
+  CABasicAnimation *rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+  rotationAnimation.fromValue = @(0); // 起始角度
+  rotationAnimation.toValue = @(2 * M_PI); // 结束角度（360度）
+  rotationAnimation.duration = 1.0; // 动画时长
+  rotationAnimation.repeatCount = HUGE_VALF; // 无限重复
+  [arcLayer addAnimation:rotationAnimation forKey:@"rotationAnimation"];
+
+  // 6. 创建“登录中”文字
+  UILabel *loadingLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 88, 20)];
+  loadingLabel.center = CGPointMake(roundedView.center.x, roundedView.center.y + 20);
+  loadingLabel.text = @"登录中";
+  loadingLabel.textColor = [UIColor whiteColor];
+  loadingLabel.textAlignment = NSTextAlignmentCenter;
+  loadingLabel.font = [UIFont systemFontOfSize:14];
+  loadingLabel.shadowColor = [UIColor blackColor]; // 文字阴影
+  loadingLabel.shadowOffset = CGSizeMake(1, 1);
+      
+  [overlayView addSubview:loadingLabel];
+  
+  self->_loading = overlayView;
+}
+
+- (void) hideCustomLoading {
+  if (self->_loading != nil) {
+    [self->_loading removeFromSuperview];
+    self->_loading = nil;
+  }
 }
 
 @end

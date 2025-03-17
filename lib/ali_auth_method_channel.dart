@@ -107,6 +107,12 @@ class MethodChannelAliAuth extends AliAuthPlatform {
         cancelOnError: null);
   }
 
+  /// 隐藏 loading
+  @override
+  hideLoading() {
+    return methodChannel.invokeMethod('hideLoading');
+  }
+
   /// 暂停
   @override
   pause() {

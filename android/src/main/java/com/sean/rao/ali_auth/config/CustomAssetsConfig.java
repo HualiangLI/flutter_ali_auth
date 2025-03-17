@@ -20,6 +20,7 @@ import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper;
 import com.mobile.auth.gatewayauth.ui.AbstractPnsViewDelegate;
 import com.sean.rao.ali_auth.R;
 import com.sean.rao.ali_auth.common.CacheManage;
+import com.sean.rao.ali_auth.common.CustomAuthUIControlClickListener;
 import com.sean.rao.ali_auth.common.MediaFileUtil;
 import com.sean.rao.ali_auth.common.NativeBackgroundAdapter;
 
@@ -70,6 +71,7 @@ public class CustomAssetsConfig extends BaseUIConfig {
         //sdk默认控件的区域是marginTop50dp
         int designHeight = mScreenHeightDp - 50;
         int unit = designHeight / 10;
+        mAuthHelper.setUIClickListener(new CustomAuthUIControlClickListener());
         mAuthHelper.addAuthRegisterXmlConfig(new AuthRegisterXmlConfig.Builder()
             .setLayout(R.layout.authsdk_widget_custom_layout, new AbstractPnsViewDelegate() {
                 @Override

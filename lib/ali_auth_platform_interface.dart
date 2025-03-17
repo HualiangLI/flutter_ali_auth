@@ -99,4 +99,9 @@ abstract class AliAuthPlatform extends PlatformInterface {
       Function(dynamic) success, Function(dynamic) error) async {
     throw UnimplementedError('getSdkVersion() has not been implemented.');
   }
+
+  /// 隐藏 loading
+  Future<void> hideLoading() {
+    throw UnimplementedError('hideLoading() has not been implemented.');
+  }
 }

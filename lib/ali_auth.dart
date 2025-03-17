@@ -99,4 +99,9 @@ class AliAuth {
       required Function(dynamic) error}) async {
     await AliAuthPlatform.instance.getVerifyToken(success, error);
   }
+
+  /// 隐藏loading
+  static Future<void> hideLoading() async {
+    await AliAuthPlatform.instance.hideLoading();
+  }
 }
